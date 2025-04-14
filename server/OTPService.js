@@ -47,7 +47,7 @@ const sendOTP = async (email, otp, userName = 'User') => {
                             <li>If you didn't request this code, please contact our support team immediately</li>
                         </ul>
                         
-                        <p>Need help? Contact our support team at <a href="mailto:support@codebonding.com">support@codebonding.com</a></p>
+                        <p>Need help? Contact our support team at <a href="mailto:cbwforce@gmail.com">cbwforce@gmail.com</a></p>
                         
                         <p>Best regards,<br>
                         The CodeBonding Workforce Team</p>

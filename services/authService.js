@@ -171,30 +171,50 @@ const initiateForgotPassword = async (email) => {
         }
 
         // Create a reset token
-        const resetToken = jwt.sign({ email: user.email, id: user.id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+        const resetToken = jwt.sign(
+            { email: user.email, id: user.id },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: '1h' }
+        );
 
-        // Send email with reset link
         const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
 
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
                 user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS
-            }
+                pass: process.env.SMTP_PASS,
+            },
         });
 
         await transporter.sendMail({
-            from: process.env.EMAIL,
+            from: `"CodeBonding Workforce" <${process.env.EMAIL}>`,
             to: email,
-            subject: 'Password Reset',
-            text: `Click here to reset your password: ${resetLink}`
+            subject: 'Reset Your Password - CodeBonding Workforce',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #e0e0e0; border-radius: 10px;">
+                  <h2 style="color: #2c3e50;">Password Reset Request</h2>
+                  <p>Hi ${user.name || ''},</p>
+                  <p>You requested to reset your password for your <strong>CodeBonding Workforce</strong> account. Click the button below to set a new password:</p>
+                  <div style="text-align: center; margin: 30px 0;">
+                    <a href="${resetLink}" style="background-color: #2563eb; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 5px; display: inline-block;">Reset Password</a>
+                  </div>
+                  <p>This link will expire in 1 hour. If you didn’t request this, no action is needed.</p>
+                  <p>Thanks,<br>The CodeBonding Workforce Team</p>
+                  <hr style="margin-top: 40px; border: none; border-top: 1px solid #ccc;">
+                  <p style="font-size: 12px; color: #777;">If the button doesn’t work, paste this link into your browser:<br>${resetLink}</p>
+                </div>
+            `,
         });
 
         return { success: true, message: 'Reset link sent to email' };
     } catch (error) {
         console.error(error);
-        return { success: false, message: 'Error initiating password reset', error: error.message };
+        return {
+            success: false,
+            message: 'Error initiating password reset',
+            error: error.message,
+        };
     }
 };
 

@@ -1,15 +1,19 @@
 const InvestmentPlan = require('../models/InvestmentPlan');
 
 exports.createPlan = async (data, createdBy) => {
+
+    console.log(data,"Gg");
     const {
         investmentAmount,
         durationValue,
         payoutCycleValue,
-        profit
+        profit,
+        payoutPerCycle
     } = data;
 
     const payoutCycles = Math.floor(durationValue / payoutCycleValue);
-    const payoutPerCycle = Number((profit / payoutCycles).toFixed(2));
+    console.log(payoutCycleValue, durationValue , payoutCycleValue,"Ffd");
+    // const payoutPerCycle = Number((profit / payoutCycles).toFixed(2));
     const totalReturn = investmentAmount + profit;
     const totalPayout = profit;
 

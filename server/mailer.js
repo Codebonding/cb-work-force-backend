@@ -12,14 +12,14 @@ const sendVerificationEmail = async (email, token) => {
     const verificationUrl = `http://localhost:3001/api/users/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
     
     const mailOptions = {
-        from: `CodeBonding Workforce <${process.env.SMTP_USER}>`,
+        from: `CodeBonding <${process.env.SMTP_USER}>`,
         to: email,
         subject: 'Verify Your Email – CodeBonding Workforce',
         html: `
             <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background: #ffffff;">
     <!-- Header with gradient -->
     <div style="background: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 600;">Welcome to CodeBonding Workforce</h1>
+        <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 600;">Welcome to CodeBonding</h1>
         <div style="font-size: 48px; margin-top: 10px;">🚀</div>
     </div>
     
@@ -43,10 +43,10 @@ const sendVerificationEmail = async (email, token) => {
     <div style="background: #f8fafc; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 14px; color: #64748b;">
         <p style="margin: 5px 0;"><strong>CodeBonding Workforce Team</strong></p>
         <p style="margin: 5px 0;">
-            <a href="mailto:support@codebonding.com" style="color: #6e8efb; text-decoration: none;">📩 support@codebonding.com</a> | 
-            <a href="https://www.codebonding.com" style="color: #6e8efb; text-decoration: none;">🌐 www.codebonding.com</a>
+            <a href="mailto:cbwforce@gmail.com" style="color: #6e8efb; text-decoration: none;">📩 cbwforce@gmail.com</a> | 
+            <a href="https://www.codebondingworkforce.com" style="color: #6e8efb; text-decoration: none;">🌐 www.codebondingworkforce.com</a>
         </p>
-        <p style="margin: 15px 0 0; font-size: 12px;">© 2023 CodeBonding. All rights reserved.</p>
+        <p style="margin: 15px 0 0; font-size: 12px;">© ${new Date().getFullYear()} CodeBonding Workforce. All rights reserved.</p>
     </div>
 </div>
         `
