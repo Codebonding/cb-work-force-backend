@@ -5,6 +5,6 @@ const { validateSim } = require('../validation/simValidation');
 const { authenticate } = require('../middleware/authMiddleware');
 
 router.post('/add', authenticate, validateSim,simController.addSim);
-router.get('/',isApprover, simController.getAllSims);
+router.get('/',authenticate, simController.getAllSims);
 
 module.exports = router;
