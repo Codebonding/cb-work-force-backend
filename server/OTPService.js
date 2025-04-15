@@ -54,7 +54,6 @@ const sendOTP = async (email, otp, userName = 'User') => {
                     </div>
                     <div style="background-color: #f3f4f6; padding: 15px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #6b7280;">
                         <p>© ${new Date().getFullYear()} CodeBonding Workforce Company. All rights reserved.</p>
-                        <p>123 Business Street, Tech City, TC 10001</p>
                     </div>
                 </div>
             `,
