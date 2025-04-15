@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendVerificationEmail = async (email, token) => {
-    const verificationUrl = `http://localhost:3001/api/users/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
+    const verificationUrl = `http://3.84.181.65:3000/api/users/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
     
     const mailOptions = {
         from: `CodeBonding <${process.env.SMTP_USER}>`,
