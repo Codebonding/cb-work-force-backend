@@ -3,7 +3,7 @@ const User = require('../models/User');
 const Authorized = require('../models/Authorized');
 const UserFinancial = require('../models/UserFinancial');
 
-const BASE_URL = "http://3.84.181.65:3000/register"; // Change this based on your domain
+const BASE_URL = "https://www.codebondingworkforce.com/register"; // Change this based on your domain
 
 const generateReferralLink = async (userId) => {
     try {
