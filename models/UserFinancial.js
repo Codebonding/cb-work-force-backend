@@ -19,9 +19,9 @@ const UserFinancial = sequelize.define('UserFinancial', {
         unique: true
     },
     accountBalance: {
-        type: DataTypes.DECIMAL(20, 4),
+        type: DataTypes.FLOAT,
         defaultValue: 0
-    },    
+    },
     totalCommission: {
         type: DataTypes.FLOAT,
         defaultValue: 0
