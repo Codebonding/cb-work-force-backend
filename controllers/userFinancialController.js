@@ -3,6 +3,9 @@ const UserFinancialService = require('../services/userFinancialService');
 exports.getUserFinancial = async (req, res) => {
     try {
         const data = await UserFinancialService.getByUserId(req.params.userId);
+
+        console.log(data,"dfdf")
+
         if (!data) {
             return res.status(404).json({
                 success: false,
