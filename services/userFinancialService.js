@@ -8,8 +8,6 @@ const getByUserId = async (userId) => {
 
     const referralCount = await User.count({ where: { referredBy: userId } });
 
-    console.log(referralCount,"dfdf")
-
     return {
         ...financialData.toJSON(),
         referralCount,
