@@ -151,7 +151,6 @@ const getAllRecentUsers = async (page = 1, limit = 10, search = '') => {
             { email: { [Op.like]: `%${search}%` } },
             { phone: { [Op.like]: `%${search}%` } }
         ];
-        
     }
 
     const { rows: users, count: totalUsers } = await User.findAndCountAll({
@@ -177,6 +176,14 @@ const getAllRecentUsers = async (page = 1, limit = 10, search = '') => {
                         AND \`UserInvestments\`.\`status\` = 'active'
                     )`),
                     'activeInvestmentCount'
+                ],
+                [
+                    literal(`(
+                        SELECT COUNT(*)
+                        FROM \`Users\` AS \`Referral\`
+                        WHERE \`Referral\`.\`referredBy\` = \`User\`.\`id\`
+                    )`),
+                    'referralCount'
                 ]
             ]
         },
