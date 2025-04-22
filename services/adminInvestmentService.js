@@ -4,7 +4,7 @@ const UserInvestment = require('../models/UserInvestment');
 const UserFinancial = require('../models/UserFinancial');
 const PayoutHistory = require('../models/PayoutHistory');
 const User = require('../models/User');
-const { literal } = require('sequelize');
+const {Op, literal } = require('sequelize');
 // Fetch all users with active investments
 const getActiveUsers = async () => {
     try {
@@ -137,16 +137,30 @@ const updateInvestmentStatus = async (investmentId, status) => {
 };
 
 
-const getAllRecentUsers = async (page = 1, limit = 10) => {
+const getAllRecentUsers = async (page = 1, limit = 10, search = '') => {
     const offset = (page - 1) * limit;
+    
+    // Base where conditions
+    const where = {};
+    const referrerWhere = {};
+    
+    // Add search conditions if search term exists
+    if (search) {
+        where[Op.or] = [
+            { name: { [Op.like]: `%${search}%` } },
+            { email: { [Op.like]: `%${search}%` } },
+            { phone: { [Op.like]: `%${search}%` } }
+        ];
+        
+    }
 
     const { rows: users, count: totalUsers } = await User.findAndCountAll({
+        where,
         order: [['createdAt', 'DESC']],
         limit,
         offset,
         attributes: {
             include: [
-                // Total investment count
                 [
                     literal(`(
                         SELECT COUNT(*)
@@ -155,7 +169,6 @@ const getAllRecentUsers = async (page = 1, limit = 10) => {
                     )`),
                     'investmentCount'
                 ],
-                // Active investment count
                 [
                     literal(`(
                         SELECT COUNT(*)
@@ -171,7 +184,9 @@ const getAllRecentUsers = async (page = 1, limit = 10) => {
             {
                 model: User,
                 as: 'referrer',
-                attributes: ['id', 'name', 'email']
+                attributes: ['id', 'name', 'email'],
+                where: referrerWhere,
+                required: false // Make this optional so users without referrers are still included
             }
         ]
     });
@@ -185,8 +200,6 @@ const getAllRecentUsers = async (page = 1, limit = 10) => {
         }
     };
 };
-
-
 
 module.exports = {
     getActiveUsers,

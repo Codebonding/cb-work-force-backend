@@ -78,8 +78,9 @@ exports.getAllRecentUsers = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
 
-        const { users, pagination } = await investmentService.getAllRecentUsers(page, limit);
+        const { users, pagination } = await investmentService.getAllRecentUsers(page, limit, search);
 
         res.status(200).json({
             success: true,
