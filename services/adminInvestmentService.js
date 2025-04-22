@@ -4,6 +4,7 @@ const UserInvestment = require('../models/UserInvestment');
 const UserFinancial = require('../models/UserFinancial');
 const PayoutHistory = require('../models/PayoutHistory');
 const User = require('../models/User');
+const { literal } = require('sequelize');
 // Fetch all users with active investments
 const getActiveUsers = async () => {
     try {
@@ -46,20 +47,17 @@ const getUserInvestment = async (userId, page, limit) => {
 };
 
 const sendPayout = async (userId, investmentId) => {
-    console.log(userId, investmentId, "gfgf");
 
     if (!userId || !investmentId) {
         throw new Error('Both userId and investmentId are required');
     }
 
     try {
-        console.log('Received userId:', userId, 'investmentId:', investmentId);
 
         const userInvestment = await UserInvestment.findOne({
             where: { userId, id: investmentId }
         });
 
-        console.log(userInvestment, "fdfd");
 
         if (!userInvestment || userInvestment.status !== 'active') {
             throw new Error('Investment not found or inactive');
@@ -67,19 +65,13 @@ const sendPayout = async (userId, investmentId) => {
 
         const userFinancial = await UserFinancial.findOne({ where: { userId } });
 
-        console.log(userFinancial, "fdf");
-
         if (!userFinancial) {
             throw new Error('User financial record not found');
         }
 
-        console.log(userInvestment.investmentPlanId, "fggf");
-
         const investmentPlan = await InvestmentPlan.findOne({
             where: { id: userInvestment.investmentPlanId }
         });
-
-        console.log(investmentPlan, "fdfg");
 
         if (!investmentPlan) {
             throw new Error('Investment plan not found');
@@ -91,7 +83,6 @@ const sendPayout = async (userId, investmentId) => {
         userFinancial.lastUpdated = new Date();
         await userFinancial.save();
 
-        // Track the payout in the PayoutHistory table
         const payoutHistory = await PayoutHistory.create({
             userId,
             investmentId,
@@ -100,8 +91,6 @@ const sendPayout = async (userId, investmentId) => {
             status: 'successful'
         });
 
-        console.log('Payout history recorded:', payoutHistory);
-
         return { message: 'Payout successfully sent to user', payoutAmount: payoutPerCycle };
     } catch (error) {
         console.error('Error processing payout:', error.message);
@@ -109,7 +98,6 @@ const sendPayout = async (userId, investmentId) => {
     }
 };
 
-// Update investment status
 const updateInvestmentStatus = async (investmentId, status) => {
     try {
         const userInvestment = await UserInvestment.findOne({ where: { id: investmentId } });
@@ -118,12 +106,27 @@ const updateInvestmentStatus = async (investmentId, status) => {
             throw new Error('Investment not found');
         }
 
-        // Check if the status is already "completed"
+        // If already completed, no update
         if (userInvestment.status === 'completed') {
             return { message: 'Investment status is already completed, no update needed.' };
         }
 
-        // Update status if it's not already "completed"
+        // Proceed only if status being updated to 'completed'
+        if (status === 'completed') {
+            const userFinancial = await UserFinancial.findOne({ where: { userId: userInvestment.userId } });
+
+            if (!userFinancial) {
+                throw new Error('User financial record not found');
+            }
+
+            // Update financial data
+            userFinancial.accountBalance += userInvestment.investedAmount;
+            userFinancial.totalInvestment -= userInvestment.investedAmount;
+            userFinancial.lastUpdated = new Date();
+            await userFinancial.save();
+        }
+
+        // Now update the investment status
         userInvestment.status = status;
         await userInvestment.save();
 
@@ -141,7 +144,36 @@ const getAllRecentUsers = async (page = 1, limit = 10) => {
         order: [['createdAt', 'DESC']],
         limit,
         offset,
-        include: [{ model: User, as: 'referrer', attributes: ['id', 'name', 'email'] }]
+        attributes: {
+            include: [
+                // Total investment count
+                [
+                    literal(`(
+                        SELECT COUNT(*)
+                        FROM \`UserInvestments\`
+                        WHERE \`UserInvestments\`.\`userId\` = \`User\`.\`id\`
+                    )`),
+                    'investmentCount'
+                ],
+                // Active investment count
+                [
+                    literal(`(
+                        SELECT COUNT(*)
+                        FROM \`UserInvestments\`
+                        WHERE \`UserInvestments\`.\`userId\` = \`User\`.\`id\`
+                        AND \`UserInvestments\`.\`status\` = 'active'
+                    )`),
+                    'activeInvestmentCount'
+                ]
+            ]
+        },
+        include: [
+            {
+                model: User,
+                as: 'referrer',
+                attributes: ['id', 'name', 'email']
+            }
+        ]
     });
 
     return {
@@ -153,6 +185,7 @@ const getAllRecentUsers = async (page = 1, limit = 10) => {
         }
     };
 };
+
 
 
 module.exports = {
