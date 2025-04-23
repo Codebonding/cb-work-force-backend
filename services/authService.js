@@ -108,8 +108,12 @@ const loginUser = async (email, password) => {
         }
 
         if (!user.verify) {
-            return { success: false, message: 'User is not verified. Please verify your account first.' };
+            return {
+                success: false,
+                message: 'User is not verified. Please verify your account first. If you haven\'t received the email, please check your spam or junk folder.'
+            };
         }
+        
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
