@@ -53,18 +53,33 @@ const getUserPayments = async (req, res) => {
 
 const getAllPayments = async (req, res) => {
   try {
-    const payments = await paymentService.getAllPayments();
+    // Extract pagination query params
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    // Fetch paginated payments and total count
+    const { payments, totalCount } = await paymentService.getAllPayments({ limit, offset });
+
     if (payments.length === 0) {
       return res.status(404).json({ message: 'No payments found.' });
     }
-    res.json(payments);
+
+    res.json({
+      message: 'Payments fetched successfully!',
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+      totalRecords: totalCount,
+      payments
+    });
   } catch (error) {
     res.status(500).json({
-      message: 'Error fetching all payments',
+      message: 'Error fetching payments',
       error: error.message || 'Unknown error occurred. Please try again later.'
     });
   }
 };
+
 
 const approvePayment = async (req, res) => {
   const { adminId } = req.body;  // Get adminId from request body

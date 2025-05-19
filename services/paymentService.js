@@ -60,19 +60,21 @@ const getUserPayments = async (userId) => {
 };
 
 
-const getAllPayments = async () => {
+const getAllPayments = async ({ limit, offset }) => {
   try {
-    const payments = await Payment.findAll({
-      order: [['createdAt', 'DESC']] // Sort by createdAt in descending order (most recent first)
+    // Fetch payments and count in one go
+    const { rows: payments, count: totalCount } = await Payment.findAndCountAll({
+      order: [['createdAt', 'DESC']],
+      limit,
+      offset
     });
-    if (payments.length === 0) {
-      return { message: 'No payments found in the system.' };
-    }
-    return { message: 'All payments fetched successfully!', payments };
+
+    return { payments, totalCount };
   } catch (error) {
     throw new Error(`Error fetching all payments: ${error.message}`);
   }
 };
+
 
 const updatePaymentStatus = async (paymentId, status, adminId, rejectionReason = null) => {
   try {
