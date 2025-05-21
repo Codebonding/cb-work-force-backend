@@ -16,7 +16,8 @@ const userInvestmentRoutes = require('./routes/userInvestmentRoutes');
 const adminInvestmentRoutes = require('./routes/adminInvestmentRoutes');
 const payoutHistoryRoutes = require('./routes/payoutHistoryRoutes');
 const mobileRechargeRoutes = require('./routes/rechargeRoutes');
-const commissionRateRoutes = require('./routes/commissionRate')
+const commissionRateRoutes = require('./routes/commissionRate');
+const adminPanelRoutes = require('./routes/adminPanelRoutes');
 const serverless = require('serverless-http');
 const os = require('os');
 
@@ -51,6 +52,7 @@ app.use('/api/admin-investments', adminInvestmentRoutes);
 app.use('/api/payout-history', payoutHistoryRoutes);
 app.use('/api/commision-rate', commissionRateRoutes);
 app.use('/api/mobile-recharge', mobileRechargeRoutes);
+app.use('/api/admin-panel', adminPanelRoutes);
 
 // Default route that returns the server's IP address
 app.get('/', (req, res) => {
@@ -72,7 +74,7 @@ app.get('/', (req, res) => {
 });
 
 // Uncomment to run locally
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

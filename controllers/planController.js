@@ -26,9 +26,12 @@ exports.getPlansBySim = async (req, res) => {
 
 exports.getPlansByType = async (req, res) => {
     try {
-        const plans = await planService.getPlansByType(req.params.type);
+        const type = req.params.type;
+        const price = req.query.price;
+
+        const plans = await planService.getPlansByType(type, price);
         res.status(200).json({
-            message: `Plans of type '${req.params.type}' fetched successfully!`,
+            message: `Plans fetched successfully!`,
             data: plans
         });
     } catch (err) {

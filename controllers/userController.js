@@ -21,7 +21,7 @@ const verifyEmail = async (req, res) => {
 
         // Check if the provided token matches the stored token
         if (token !== user.verificationToken) {
-            return res.status(400).json({ success: false, message: 'Invalid verification token' });
+            return res.status(400).json({ success: false, message: 'Your email is already verified. Please log in to continue.' });
         }
 
         // Mark the user as verified
