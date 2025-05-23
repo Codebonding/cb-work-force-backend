@@ -18,6 +18,8 @@ const payoutHistoryRoutes = require('./routes/payoutHistoryRoutes');
 const mobileRechargeRoutes = require('./routes/rechargeRoutes');
 const commissionRateRoutes = require('./routes/commissionRate');
 const adminPanelRoutes = require('./routes/adminPanelRoutes');
+const withdrawalRoutes = require('./routes/withdrawalRoutes');
+const bankAccountRoutes = require('./routes/bankAccount');
 const serverless = require('serverless-http');
 const os = require('os');
 
@@ -36,7 +38,6 @@ app.use(bodyParser.json());
     }
 })();
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/kyc', kycRoutes);
@@ -53,8 +54,10 @@ app.use('/api/payout-history', payoutHistoryRoutes);
 app.use('/api/commision-rate', commissionRateRoutes);
 app.use('/api/mobile-recharge', mobileRechargeRoutes);
 app.use('/api/admin-panel', adminPanelRoutes);
+app.use('/api/withdrawals', withdrawalRoutes);
+app.use('/api/bank-accounts', bankAccountRoutes);
 
-// Default route that returns the server's IP address
+
 app.get('/', (req, res) => {
     const networkInterfaces = os.networkInterfaces();
     const localIps = [];
@@ -73,7 +76,6 @@ app.get('/', (req, res) => {
     });
 });
 
-// Uncomment to run locally
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
