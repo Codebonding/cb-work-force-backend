@@ -11,6 +11,10 @@ const BankAccount = sequelize.define('BankAccount', {
     type: DataTypes.UUID,
     allowNull: false
   },
+  bankUserName: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
   bankName: {
     type: DataTypes.STRING,
     allowNull: false
