@@ -49,6 +49,7 @@ const deleteBankAccount = async (userId, accountId) => {
 };
 
 const getUserBankAccounts = async (userId) => {
+  console.log(userId);
   return await BankAccount.findAll({ where: { userId } });
 };
 

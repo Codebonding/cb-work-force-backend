@@ -36,11 +36,51 @@ const createWithdrawal = async (req, res) => {
 
 const getAllWithdrawals = async (req, res) => {
   try {
-    const requests = await withdrawalService.getAllWithdrawalRequests();
+    const userId = req.user.userId;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const { rows: data, count: total } = await withdrawalService.getAllWithdrawalRequests(userId, offset, limit);
+
     res.status(200).json({
       success: true,
-      message: 'Fetched all withdrawal requests.',
-      data: requests
+      message: 'Fetched withdrawal requests.',
+      data,
+      meta: {
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (err) {
+    console.error('Get withdrawals error:', err);
+    res.status(500).json({
+      success: false,
+      message: err.message || 'Failed to fetch withdrawal requests.'
+    });
+  }
+};
+
+const getAllAdminWithdrawals = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const { rows: data, count: total } = await withdrawalService.getAllAdminWithdrawalRequests( offset, limit);
+
+    console.log(data,"FDfg");
+    
+    res.status(200).json({
+      success: true,
+      message: 'Fetched withdrawal requests.',
+      data,
+      meta: {
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      }
     });
   } catch (err) {
     console.error('Get withdrawals error:', err);
@@ -117,5 +157,6 @@ module.exports = {
   createWithdrawal,
   getAllWithdrawals,
   approveWithdrawal,
-  getWithdrawalWithHistory
+  getWithdrawalWithHistory,
+  getAllAdminWithdrawals
 };

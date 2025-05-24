@@ -23,7 +23,6 @@ router.post(
 
 router.post(
   '/:id/status',
-  // authenticate,
   isApprover,
   validateRequest(updateStatusSchema),
   withdrawalController.approveWithdrawal
@@ -42,9 +41,9 @@ router.get(
 );
 
 router.get(
-  '/',
+  '/admin',
   isApprover,
-  withdrawalController.getAllWithdrawals
+  withdrawalController.getAllAdminWithdrawals
 );
 
 module.exports = router;

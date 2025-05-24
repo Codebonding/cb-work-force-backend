@@ -25,9 +25,23 @@ const createWithdrawalRequest = async ({ userId, bankAccount, ifscCode, branch, 
 };
 
 
-const getAllWithdrawalRequests = async () => {
-  return await WithdrawalRequest.findAll();
+const getAllWithdrawalRequests = async (userId, offset, limit) => {
+  return await WithdrawalRequest.findAndCountAll({
+    where: { userId },
+    offset,
+    limit,
+    order: [['createdAt', 'DESC']]
+  });
 };
+
+const getAllAdminWithdrawalRequests = async ( offset, limit) => {
+  return await WithdrawalRequest.findAndCountAll({
+    offset,
+    limit,
+    order: [['createdAt', 'DESC']]
+  });
+};
+
 
 const getWithdrawalRequestById = async (id) => {
   return await WithdrawalRequest.findByPk(id);
@@ -82,4 +96,5 @@ module.exports = {
   getAllWithdrawalRequests,
   getWithdrawalRequestById,
   updateWithdrawalStatus,
+  getAllAdminWithdrawalRequests
 };
