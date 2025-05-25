@@ -80,7 +80,11 @@ exports.getAllRecentUsers = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const search = req.query.search || '';
 
-        const { users, pagination } = await investmentService.getAllRecentUsers(page, limit, search);
+        // Check if `active` param is passed (user only needs to pass it explicitly)
+        const activeParam = req.query.active;
+        const active = activeParam === 'true' ? true : activeParam === 'false' ? false : undefined;
+
+        const { users, pagination } = await investmentService.getAllRecentUsers(page, limit, search, active);
 
         res.status(200).json({
             success: true,

@@ -137,14 +137,12 @@ const updateInvestmentStatus = async (investmentId, status) => {
 };
 
 
-const getAllRecentUsers = async (page = 1, limit = 10, search = '') => {
+const getAllRecentUsers = async (page = 1, limit = 10, search = '', active) => {
     const offset = (page - 1) * limit;
-    
-    // Base where conditions
+
     const where = {};
     const referrerWhere = {};
-    
-    // Add search conditions if search term exists
+
     if (search) {
         where[Op.or] = [
             { name: { [Op.like]: `%${search}%` } },
@@ -153,60 +151,84 @@ const getAllRecentUsers = async (page = 1, limit = 10, search = '') => {
         ];
     }
 
+    const attributes = {
+        include: [
+            [
+                literal(`(
+                    SELECT COUNT(*)
+                    FROM \`UserInvestments\`
+                    WHERE \`UserInvestments\`.\`userId\` = \`User\`.\`id\`
+                )`),
+                'investmentCount'
+            ],
+            [
+                literal(`(
+                    SELECT COUNT(*)
+                    FROM \`UserInvestments\`
+                    WHERE \`UserInvestments\`.\`userId\` = \`User\`.\`id\`
+                    AND \`UserInvestments\`.\`status\` = 'active'
+                )`),
+                'activeInvestmentCount'
+            ],
+            [
+                literal(`(
+                    SELECT COUNT(*)
+                    FROM \`Users\` AS \`Referral\`
+                    WHERE \`Referral\`.\`referredBy\` = \`User\`.\`id\`
+                )`),
+                'referralCount'
+            ]
+        ]
+    };
+
+    const group = ['User.id'];
+
+    let having = undefined;
+    if (typeof active === 'boolean') {
+        const activeInvestmentCountLiteral = `
+            (
+                SELECT COUNT(*)
+                FROM \`UserInvestments\`
+                WHERE \`UserInvestments\`.\`userId\` = \`User\`.\`id\`
+                AND \`UserInvestments\`.\`status\` = 'active'
+            )
+        `;
+        having = active
+            ? literal(`${activeInvestmentCountLiteral} > 0`)
+            : literal(`${activeInvestmentCountLiteral} = 0`);
+    }
+
     const { rows: users, count: totalUsers } = await User.findAndCountAll({
         where,
-        order: [['createdAt', 'DESC']],
-        limit,
-        offset,
-        attributes: {
-            include: [
-                [
-                    literal(`(
-                        SELECT COUNT(*)
-                        FROM \`UserInvestments\`
-                        WHERE \`UserInvestments\`.\`userId\` = \`User\`.\`id\`
-                    )`),
-                    'investmentCount'
-                ],
-                [
-                    literal(`(
-                        SELECT COUNT(*)
-                        FROM \`UserInvestments\`
-                        WHERE \`UserInvestments\`.\`userId\` = \`User\`.\`id\`
-                        AND \`UserInvestments\`.\`status\` = 'active'
-                    )`),
-                    'activeInvestmentCount'
-                ],
-                [
-                    literal(`(
-                        SELECT COUNT(*)
-                        FROM \`Users\` AS \`Referral\`
-                        WHERE \`Referral\`.\`referredBy\` = \`User\`.\`id\`
-                    )`),
-                    'referralCount'
-                ]
-            ]
-        },
+        attributes,
         include: [
             {
                 model: User,
                 as: 'referrer',
                 attributes: ['id', 'name', 'email'],
                 where: referrerWhere,
-                required: false // Make this optional so users without referrers are still included
+                required: false
             }
-        ]
+        ],
+        group,
+        having,
+        order: [['createdAt', 'DESC']],
+        limit,
+        offset,
+        subQuery: false
     });
 
     return {
         users,
         pagination: {
-            totalUsers,
+            totalUsers: Array.isArray(totalUsers) ? totalUsers.length : totalUsers,
             currentPage: page,
-            totalPages: Math.ceil(totalUsers / limit),
+            totalPages: Math.ceil((Array.isArray(totalUsers) ? totalUsers.length : totalUsers) / limit),
         }
     };
 };
+
+
 
 module.exports = {
     getActiveUsers,
