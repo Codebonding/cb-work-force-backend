@@ -1,27 +1,27 @@
 const { v4: uuidv4 } = require('uuid');
 const { Op } = require('sequelize');
 const axios = require('axios');
-const Sim = require('../models/Sim');
+const Dth = require('../models/Dth');
 const CommissionRate = require('../models/CommissionRate');
 const User = require('../models/User');
 const UserFinancial = require('../models/UserFinancial');
 const RechargeHistory = require('../models/RechargeHistory');
 
 
-const processRecharge = async (userId, body) => {
+const processDTHRecharge = async (userId, body) => {
     const { number, amount, operatorCode, circleCode } = body;
     const orderId = `ORD-${uuidv4()}`;
   
     // Fetch necessary data
-    const [sim, commissionRate, user, userFinancial] = await Promise.all([
-      Sim.findOne({ where: { operatorCode } }),
+    const [dth, commissionRate, user, userFinancial] = await Promise.all([
+      Dth.findOne({ where: { operatorCode } }),
       CommissionRate.findOne({ where: { operatorCode } }),
       User.findByPk(userId),
       UserFinancial.findOne({ where: { userId } })
     ]);
   
-    if (!user || !userFinancial || !commissionRate || !sim) {
-      throw new Error("User, financial, commission, or SIM data not found.");
+    if (!user || !userFinancial || !commissionRate || !dth) {
+      throw new Error("User, financial, commission, or dth data not found.");
     }
   
     // ✅ Check if user has enough balance
@@ -30,7 +30,7 @@ const processRecharge = async (userId, body) => {
     }
   
     // 🔗 External API call
-    const url = `https://business.a1topup.com/recharge/api?username=${process.env.A1_USERNAME}&pwd=${process.env.A1_PASSWORD}&circlecode=${sim.circleCode}&operatorcode=${sim.operatorCode}&number=${number}&amount=${amount}&orderid=${orderId}&format=json`;
+    const url = `https://business.a1topup.com/recharge/api?username=${process.env.A1_USERNAME}&pwd=${process.env.A1_PASSWORD}&circlecode=${dth.circleCode}&operatorcode=${dth.operatorCode}&number=${number}&amount=${amount}&orderid=${orderId}&format=json`;
   
     const response = await axios.get(url);
     console.log("Recharge API Response:", response.data);
@@ -50,7 +50,6 @@ const processRecharge = async (userId, body) => {
       throw new Error('Unexpected response format from recharge API.');
     }
   
-    // 🟢 Handle success
     if (status === 'Success') {
       const userCommission = amount * (commissionRate.userCommission / 100);
       let referrerCommission = 0;
@@ -119,7 +118,7 @@ const processRecharge = async (userId, body) => {
   };
 
   
-  const fetchUserRechargeHistory = async (userId, page = 1, limit = 10) => {
+  const fetchUserDTHRechargeHistory = async (userId, page = 1, limit = 10) => {
     const offset = (page - 1) * limit;
     return await RechargeHistory.findAndCountAll({
       where: { userId },
@@ -128,48 +127,7 @@ const processRecharge = async (userId, body) => {
       limit
     });
   };
-  
-  const fetchUserCommissionHistory = async (userId, page = 1, limit = 10) => {
-    const offset = (page - 1) * limit;
-    return await RechargeHistory.findAndCountAll({
-      where: {
-        userId,
-        userCommission: { [Op.gt]: 0 }
-      },
-      attributes: ['number', 'orderId', 'userCommission', 'status', 'createdAt'],
-      order: [['createdAt', 'DESC']],
-      offset,
-      limit
-    });
-  };
-  
-  const fetchReferrerCommissionHistory = async (referrerId, page = 1, limit = 10) => {
-    
-  
-    const referredUsers = await User.findAll({
-      where: { referredBy: referrerId },
-      attributes: ['id']
-    });
 
-    console.log(referredUsers,"FGgg");
-    
-  
-    const referredUserIds = referredUsers.map(user => user.id);
-    if (referredUserIds.length === 0) return { count: 0, rows: [] };
-  
-    const offset = (page - 1) * limit;
-    return await RechargeHistory.findAndCountAll({
-      where: {
-        userId: { [Op.in]: referredUserIds },
-        referrerCommission: { [Op.gt]: 0 }
-      },
-      attributes: ['orderId', 'status', 'referrerCommission', 'createdAt'],
-      order: [['createdAt', 'DESC']],
-      offset,
-      limit
-    });
-  };
-  
   
 
-module.exports = { processRecharge, fetchUserRechargeHistory, fetchUserCommissionHistory, fetchReferrerCommissionHistory };
+module.exports = { processDTHRecharge, fetchUserDTHRechargeHistory};

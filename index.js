@@ -21,6 +21,9 @@ const adminPanelRoutes = require('./routes/adminPanelRoutes');
 const withdrawalRoutes = require('./routes/withdrawalRoutes');
 const bankAccountRoutes = require('./routes/bankAccount');
 const serverless = require('serverless-http');
+const dthRoutes = require('./routes/dthRoutes');
+const dthRechargeRoutes = require('./routes/dthRechargeRoutes');
+const dthPlanRoutes = require('./routes/dthPlanRoutes');
 const os = require('os');
 
 const app = express();
@@ -56,7 +59,9 @@ app.use('/api/mobile-recharge', mobileRechargeRoutes);
 app.use('/api/admin-panel', adminPanelRoutes);
 app.use('/api/withdrawals', withdrawalRoutes);
 app.use('/api/bank-accounts', bankAccountRoutes);
-
+app.use('/api/dth', dthRoutes);
+app.use('/api/dth-recharge', dthRechargeRoutes);
+app.use('/api/dth-plans', dthPlanRoutes);
 
 app.get('/', (req, res) => {
     const networkInterfaces = os.networkInterfaces();
@@ -76,7 +81,7 @@ app.get('/', (req, res) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

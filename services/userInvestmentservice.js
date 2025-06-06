@@ -1,4 +1,5 @@
 const { Op } = require('sequelize');
+const User = require('../models/User'); // Ensure this is imported
 const UserFinancial  = require('../models/UserFinancial');
 const  UserInvestment = require('../models/UserInvestment');
 const  InvestmentPlan  = require('../models/InvestmentPlan');
@@ -37,6 +38,19 @@ exports.createInvestment = async (userId, investmentPlanId, createdBy) => {
 
   if (!plan) throw new Error('Investment plan not found');
 
+  if (plan.investmentAmount === 100) {
+    const existingCount = await UserInvestment.count({
+      where: {
+        userId,
+        investmentPlanId
+      }
+    });
+
+    if (existingCount >= 2) {
+      throw new Error('You can only purchase this ₹100 investment plan a maximum of 2 times.');
+    }
+  }
+
   const userFinancial = await UserFinancial.findOne({ where: { userId } });
 
   if (!userFinancial) throw new Error('User financial data not found');
@@ -51,6 +65,17 @@ exports.createInvestment = async (userId, investmentPlanId, createdBy) => {
   userFinancial.totalInvestment += plan.investmentAmount;
   userFinancial.lastUpdated = new Date();
   await userFinancial.save();
+
+    // ✅ Reward referrer with ₹3 if exists
+  const user = await User.findByPk(userId);
+  if (user?.referredBy) {
+    const referrerFinancial = await UserFinancial.findOne({ where: { userId: user.referredBy } });
+    if (referrerFinancial) {
+      referrerFinancial.accountBalance += 2;
+      referrerFinancial.lastUpdated = new Date();
+      await referrerFinancial.save();
+    }
+  }
 
   const now = new Date();
   const endDate = calculateEndDate(now, plan.durationValue, plan.durationUnit);
@@ -67,7 +92,6 @@ exports.createInvestment = async (userId, investmentPlanId, createdBy) => {
     createdBy,  // Set createdBy
   });
 };
-
 
 
 exports.getUserInvestmentsByStatus = async (userId, status) => {
