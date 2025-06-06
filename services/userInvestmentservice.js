@@ -1,30 +1,31 @@
 const { Op } = require('sequelize');
-const User = require('../models/User'); // Ensure this is imported
+const User = require('../models/User');
 const UserFinancial  = require('../models/UserFinancial');
 const  UserInvestment = require('../models/UserInvestment');
 const  InvestmentPlan  = require('../models/InvestmentPlan');
+const UserRewardHistory  = require('../models/UserRewardHistory');
 
 const calculateEndDate = (startDate, durationValue, durationUnit) => {
-  const endDate = new Date(startDate);  // Create a copy of startDate to avoid mutation
+  const endDate = new Date(startDate);  
 
   switch (durationUnit) {
     case 'month':
-      endDate.setMonth(startDate.getMonth() + durationValue);  // Add months
+      endDate.setMonth(startDate.getMonth() + durationValue);  
       break;
     case 'day':
-      endDate.setDate(startDate.getDate() + durationValue);  // Add days
+      endDate.setDate(startDate.getDate() + durationValue);  
       break;
     case 'year':
-      endDate.setFullYear(startDate.getFullYear() + durationValue);  // Add years
+      endDate.setFullYear(startDate.getFullYear() + durationValue);  
       break;
     case 'hour':
-      endDate.setHours(startDate.getHours() + durationValue);  // Add hours
+      endDate.setHours(startDate.getHours() + durationValue);  
       break;
     case 'minute':
-      endDate.setMinutes(startDate.getMinutes() + durationValue);  // Add minutes
+      endDate.setMinutes(startDate.getMinutes() + durationValue);  
       break;
     case 'second':
-      endDate.setSeconds(startDate.getSeconds() + durationValue);  // Add seconds
+      endDate.setSeconds(startDate.getSeconds() + durationValue); 
       break;
     default:
       throw new Error('Unsupported duration unit');
@@ -74,6 +75,13 @@ exports.createInvestment = async (userId, investmentPlanId, createdBy) => {
       referrerFinancial.accountBalance += 2;
       referrerFinancial.lastUpdated = new Date();
       await referrerFinancial.save();
+
+       await UserRewardHistory.create({
+        userId: user.referredBy,
+        referredUserId: userId,
+        amount: 2,
+        description: `Referral reward for ${userId}'s investment of ₹${plan.investmentAmount}`
+      });
     }
   }
 

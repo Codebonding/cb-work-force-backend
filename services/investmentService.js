@@ -2,7 +2,6 @@ const InvestmentPlan = require('../models/InvestmentPlan');
 
 exports.createPlan = async (data, createdBy) => {
 
-    console.log(data,"Gg");
     const {
         investmentAmount,
         durationValue,

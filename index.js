@@ -24,6 +24,7 @@ const serverless = require('serverless-http');
 const dthRoutes = require('./routes/dthRoutes');
 const dthRechargeRoutes = require('./routes/dthRechargeRoutes');
 const dthPlanRoutes = require('./routes/dthPlanRoutes');
+const userRewardHistoryRoutes = require('./routes/userRewardHistoryRoutes');
 const os = require('os');
 
 const app = express();
@@ -62,6 +63,7 @@ app.use('/api/bank-accounts', bankAccountRoutes);
 app.use('/api/dth', dthRoutes);
 app.use('/api/dth-recharge', dthRechargeRoutes);
 app.use('/api/dth-plans', dthPlanRoutes);
+app.use('/api/reward-history', userRewardHistoryRoutes);
 
 app.get('/', (req, res) => {
     const networkInterfaces = os.networkInterfaces();
