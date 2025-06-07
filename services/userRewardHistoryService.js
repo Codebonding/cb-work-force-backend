@@ -1,9 +1,10 @@
-// services/userRewardHistory.service.js
-const  UserRewardHistory  = require('../models/UserRewardHistory');
+const UserRewardHistory = require('../models/UserRewardHistory');
 
-exports.getRewardHistoryByUserId = async (userId) => {
-  return await UserRewardHistory.findAll({
+exports.getRewardHistoryByUserId = async (userId, limit, offset) => {
+  return await UserRewardHistory.findAndCountAll({
     where: { userId },
-    order: [['createdAt', 'DESC']]
+    order: [['createdAt', 'DESC']],
+    limit,
+    offset
   });
 };

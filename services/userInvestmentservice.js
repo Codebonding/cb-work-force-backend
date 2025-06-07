@@ -52,6 +52,19 @@ exports.createInvestment = async (userId, investmentPlanId, createdBy) => {
     }
   }
 
+    if (plan.investmentAmount === 50) {
+    const existingCount = await UserInvestment.count({
+      where: {
+        userId,
+        investmentPlanId
+      }
+    });
+
+    if (existingCount >= 4) {
+      throw new Error('You can only purchase this ₹50 investment plan a maximum of 4 times.');
+    }
+  }
+
   const userFinancial = await UserFinancial.findOne({ where: { userId } });
 
   if (!userFinancial) throw new Error('User financial data not found');
