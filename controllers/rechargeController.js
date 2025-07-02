@@ -2,7 +2,8 @@ const {
     processRecharge,
     fetchUserRechargeHistory,
     fetchUserCommissionHistory,
-    fetchReferrerCommissionHistory
+    fetchReferrerCommissionHistory,
+    fetchAdminUserRechargeHistory
   } = require('../services/rechargeService');
 
   const initiateRecharge = async (req, res) => {
@@ -57,6 +58,34 @@ const {
       });
     }
   };
+
+const getAdminUserRechargeHistory = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || '';     // search by txid, number, name, email
+    const status = req.query.status || '';     // filter by Success / Failure
+
+    const result = await fetchAdminUserRechargeHistory(page, limit, search, status);
+
+    res.status(200).json({
+      success: true,
+      message: 'Recharge history retrieved successfully.',
+      currentPage: page,
+      totalPages: Math.ceil(result.count / limit),
+      totalRecords: result.count,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error("Recharge History Error:", error.message || error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve recharge history.',
+      error: error.message || 'Internal server error.'
+    });
+  }
+};
+
   
   const getUserCommissionHistory = async (req, res) => {
     try {
@@ -114,6 +143,7 @@ const {
     initiateRecharge,
     getUserRechargeHistory,
     getUserCommissionHistory,
-    getReferrerCommissionHistory
+    getReferrerCommissionHistory,
+    getAdminUserRechargeHistory
   };
   

@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { Op } = require('sequelize');
+const { Op , fn, col, where} = require('sequelize');
 const axios = require('axios');
 const Sim = require('../models/Sim');
 const CommissionRate = require('../models/CommissionRate');
@@ -128,7 +128,42 @@ const processRecharge = async (userId, body) => {
       limit
     });
   };
-  
+
+const fetchAdminUserRechargeHistory = async (page = 1, limit = 10, search = '', status = '') => {
+  const offset = (page - 1) * limit;
+
+  const rechargeWhere = {};
+  const includeUser = {
+    model: User,
+    as: 'user',
+    attributes: ['id', 'name', 'email', 'phone']
+  };
+
+  if (status) {
+    rechargeWhere.status = status;
+  }
+
+  if (search) {
+    const keyword = `%${search.toLowerCase()}%`;
+
+    // Combine RechargeHistory and User fields into a single OR array
+    rechargeWhere[Op.or] = [
+      where(fn('LOWER', col('RechargeHistory.number')), { [Op.like]: keyword }),
+      where(fn('LOWER', col('RechargeHistory.txid')), { [Op.like]: keyword }),
+      where(fn('LOWER', col('user.name')), { [Op.like]: keyword }),
+      where(fn('LOWER', col('user.email')), { [Op.like]: keyword }),
+      where(fn('LOWER', col('user.phone')), { [Op.like]: keyword })
+    ];
+  }
+
+  return await RechargeHistory.findAndCountAll({
+    where: rechargeWhere,
+    include: [includeUser],
+    order: [['createdAt', 'DESC']],
+    offset,
+    limit
+  });
+};
   const fetchUserCommissionHistory = async (userId, page = 1, limit = 10) => {
     const offset = (page - 1) * limit;
     return await RechargeHistory.findAndCountAll({
@@ -150,9 +185,6 @@ const processRecharge = async (userId, body) => {
       where: { referredBy: referrerId },
       attributes: ['id']
     });
-
-    console.log(referredUsers,"FGgg");
-    
   
     const referredUserIds = referredUsers.map(user => user.id);
     if (referredUserIds.length === 0) return { count: 0, rows: [] };
@@ -172,4 +204,4 @@ const processRecharge = async (userId, body) => {
   
   
 
-module.exports = { processRecharge, fetchUserRechargeHistory, fetchUserCommissionHistory, fetchReferrerCommissionHistory };
+module.exports = { processRecharge, fetchUserRechargeHistory, fetchUserCommissionHistory, fetchAdminUserRechargeHistory , fetchReferrerCommissionHistory };
