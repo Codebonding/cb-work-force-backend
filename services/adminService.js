@@ -102,7 +102,6 @@ const logoutUser = async (userId) => {
 const getAllBlockStatuses = async (page = 1, limit = 10, search = '', block) => {
   const offset = (page - 1) * limit;
 
-  // User search filters
   const userWhere = {};
   if (search) {
     userWhere[Op.or] = [
@@ -112,22 +111,16 @@ const getAllBlockStatuses = async (page = 1, limit = 10, search = '', block) => 
     ];
   }
 
-  // Include UserStatus and filter if needed
-  const statusWhere = {};
-  if (typeof block === 'boolean') {
-    statusWhere.isBlocked = block;
-  }
+  const userStatusInclude = {
+    model: UserStatus,
+    attributes: ['isBlocked', 'reason'],
+    required: typeof block === 'boolean', // 🔁 use INNER JOIN only when filtering
+    where: typeof block === 'boolean' ? { isBlocked: block } : undefined
+  };
 
   const { rows: users, count } = await User.findAndCountAll({
     where: userWhere,
-    include: [
-      {
-        model: UserStatus,
-        required: false, // LEFT JOIN
-        attributes: ['isBlocked', 'reason'],
-        where: typeof block === 'boolean' ? statusWhere : undefined
-      }
-    ],
+    include: [userStatusInclude],
     attributes: ['id', 'name', 'email', 'phone'],
     limit,
     offset,
@@ -157,6 +150,7 @@ const getAllBlockStatuses = async (page = 1, limit = 10, search = '', block) => 
     }
   };
 };
+
 
 module.exports = {
   registerAdmin,
