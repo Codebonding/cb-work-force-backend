@@ -6,6 +6,7 @@ const Authorized = require('../models/Authorized');
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 const { sendVerificationEmail } = require('../server/mailer');
+const UserStatus = require('../models/UserStatus');
 const UserFinancial = require('../models/UserFinancial');
 
 const generateReferralCode = () => crypto.randomBytes(4).toString('hex').toUpperCase(); // Example: "A1B2C3D4"
@@ -114,11 +115,19 @@ const loginUser = async (email, password) => {
             };
         }
         
+        const status = await UserStatus.findOne({ where: { userId: user.id } });
+        if (status?.isBlocked) return { success: false, message: 'Account is blocked' };
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return { success: false, message: 'Invalid credentials' };
         }
+
+         await UserStatus.upsert({
+            userId: user.id,
+            isOnline: true,
+            lastLoginAt: new Date()
+        });
 
         const accessToken = jwt.sign({ userId: user.id, name : user.name }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '3h' });
         const refreshToken = jwt.sign({ userId: user.id, name : user.name }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' });

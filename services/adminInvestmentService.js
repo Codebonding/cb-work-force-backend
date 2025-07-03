@@ -4,6 +4,7 @@ const UserInvestment = require('../models/UserInvestment');
 const UserFinancial = require('../models/UserFinancial');
 const PayoutHistory = require('../models/PayoutHistory');
 const User = require('../models/User');
+const UserStatus = require('../models/UserStatus');
 const {Op, literal } = require('sequelize');
 // Fetch all users with active investments
 const getActiveUsers = async () => {
@@ -141,8 +142,6 @@ const getAllRecentUsers = async (page = 1, limit = 10, search = '', active) => {
     const offset = (page - 1) * limit;
 
     const where = {};
-    const referrerWhere = {};
-
     if (search) {
         where[Op.or] = [
             { name: { [Op.like]: `%${search}%` } },
@@ -181,7 +180,7 @@ const getAllRecentUsers = async (page = 1, limit = 10, search = '', active) => {
         ]
     };
 
-    const group = ['User.id'];
+    const group = ['User.id', 'referrer.id', 'UserStatus.id'];
 
     let having = undefined;
     if (typeof active === 'boolean') {
@@ -206,7 +205,11 @@ const getAllRecentUsers = async (page = 1, limit = 10, search = '', active) => {
                 model: User,
                 as: 'referrer',
                 attributes: ['id', 'name', 'email'],
-                where: referrerWhere,
+                required: false
+            },
+            {
+                model: UserStatus,
+                attributes: ['isOnline', 'isBlocked', 'lastLoginAt', 'lastLogoutAt'],
                 required: false
             }
         ],
@@ -227,7 +230,6 @@ const getAllRecentUsers = async (page = 1, limit = 10, search = '', active) => {
         }
     };
 };
-
 
 
 module.exports = {

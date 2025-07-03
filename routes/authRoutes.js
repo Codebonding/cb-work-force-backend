@@ -2,8 +2,10 @@ const express = require('express');
 const { registerUser, loginUser, initiateForgotPassword, resetPassword, changePassword } = require('../services/authService');
 const { authenticate } = require('../middleware/authMiddleware');
 const { validateRegister, validateLogin, validateForgotPassword, validateResetPassword } = require('../validation/authValidation');
-const { getUserById } = require('../controllers/authController');
+const { getUserById, blockOrUnblockUser, logoutUser, getAllBlockStatuses } = require('../controllers/authController');
 const { validateUserId } = require('../validation/authValidation');
+const { isApprover } = require('../middleware/isApprover');
+const UserStatus = require('../models/UserStatus');
 
 const router = express.Router();
 
@@ -35,8 +37,15 @@ router.post('/login', validateLogin, async (req, res) => {
     }
 });
 
+router.post('/block-user', isApprover, blockOrUnblockUser);
 
-router.get('/:userId', validateUserId, getUserById);
+// 🔒 Logout User
+router.post('/logout', logoutUser);
+
+// 🔒 View All Blocked/Unblocked Users
+router.get('/users/block-status', isApprover, getAllBlockStatuses);
+
+// router.get('/:userId', validateUserId, getUserById);
 
 router.post('/forgot-password', validateForgotPassword, async (req, res) => {
     try {
