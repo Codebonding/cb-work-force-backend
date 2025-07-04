@@ -45,7 +45,7 @@ router.post('/logout', logoutUser);
 // 🔒 View All Blocked/Unblocked Users
 router.get('/users/block-status', isApprover, getAllBlockStatuses);
 
-// router.get('/:userId', validateUserId, getUserById);
+router.get('/:userId', validateUserId, getUserById);
 
 router.post('/forgot-password', validateForgotPassword, async (req, res) => {
     try {
