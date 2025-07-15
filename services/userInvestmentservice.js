@@ -47,7 +47,7 @@ exports.createInvestment = async (userId, investmentPlanId, createdBy) => {
       }
     });
 
-    if (existingCount >= 2) {
+    if (existingCount >= 1) {
       throw new Error('You can only purchase this ₹100 investment plan a maximum of 2 times.');
     }
   }
