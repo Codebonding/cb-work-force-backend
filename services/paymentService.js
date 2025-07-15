@@ -1,6 +1,7 @@
 const Payment = require('../models/Payment');
 const UserFinancial = require('../models/UserFinancial');
-
+const User = require('../models/User');
+const { Op } = require('sequelize');
 
 const createPayment = async ({ userId, utrNumber, amount, bankName, accountNumber, ifscCode, paymentDate }) => {
   // Optional check for duplicate UTR number
@@ -60,10 +61,30 @@ const getUserPayments = async (userId) => {
 };
 
 
-const getAllPayments = async ({ limit, offset }) => {
+const getAllPayments = async ({ limit, offset, search }) => {
   try {
-    // Fetch payments and count in one go
+    const searchFilter = search
+      ? {
+          [Op.or]: [
+            { utrNumber: { [Op.like]: `%${search}%` } },
+            { '$UserFinancial.User.name$': { [Op.like]: `%${search}%` } },
+            { '$UserFinancial.User.email$': { [Op.like]: `%${search}%` } }
+          ]
+        }
+      : {};
+
     const { rows: payments, count: totalCount } = await Payment.findAndCountAll({
+      where: searchFilter,
+      include: [
+        {
+          model: UserFinancial,
+          attributes: ['accountBalance'],
+          include: {
+            model: User,
+            attributes: ['name', 'email']
+          }
+        }
+      ],
       order: [['createdAt', 'DESC']],
       limit,
       offset
@@ -71,10 +92,9 @@ const getAllPayments = async ({ limit, offset }) => {
 
     return { payments, totalCount };
   } catch (error) {
-    throw new Error(`Error fetching all payments: ${error.message}`);
+    throw new Error(`Error fetching payments: ${error.message}`);
   }
 };
-
 
 const updatePaymentStatus = async (paymentId, status, adminId, rejectionReason = null) => {
   try {

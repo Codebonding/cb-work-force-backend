@@ -2,6 +2,7 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 const User = require('./User');
 const Admin = require('./Admin');
+const UserFinancial = require('./UserFinancial');
 
 const Payment = sequelize.define('Payment', {
   id: {
@@ -88,5 +89,7 @@ Payment.belongsTo(Admin, { foreignKey: 'adminId' });
 
 Admin.hasMany(Payment, { foreignKey: 'updatedBy' });
 Payment.belongsTo(Admin, { foreignKey: 'updatedBy' });
+
+Payment.belongsTo(UserFinancial, { foreignKey: 'userId', targetKey: 'userId' });
 
 module.exports = Payment;

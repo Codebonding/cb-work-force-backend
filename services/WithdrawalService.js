@@ -1,5 +1,7 @@
 const WithdrawalRequest = require('../models/WithdrawalRequest');
 const UserFinancial = require('../models/UserFinancial');
+const User = require('../models/User');
+const { Op } = require('sequelize');
 
 const createWithdrawalRequest = async ({ userId, bankAccount, ifscCode, branch, withdrawalAmount }) => {
   // Check balance
@@ -34,13 +36,50 @@ const getAllWithdrawalRequests = async (userId, offset, limit) => {
   });
 };
 
-const getAllAdminWithdrawalRequests = async ( offset, limit) => {
+
+const getAllAdminWithdrawalRequests = async (offset, limit, filters = {}) => {
+  if (!WithdrawalRequest.associations.user) {
+    WithdrawalRequest.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+  }
+
+  const whereClause = {};
+
+  // Filter by status
+  if (filters.status) {
+    whereClause.status = filters.status;
+  }
+
+  // Combined search on both withdrawal + user fields
+  if (filters.search) {
+    const keyword = `%${filters.search}%`;
+
+    whereClause[Op.or] = [
+      { bankAccount: { [Op.like]: keyword } },
+      { ifscCode: { [Op.like]: keyword } },
+      { branch: { [Op.like]: keyword } },
+      { '$user.name$': { [Op.like]: keyword } },
+      { '$user.email$': { [Op.like]: keyword } },
+      { '$user.phone$': { [Op.like]: keyword } }
+    ];
+  }
+
   return await WithdrawalRequest.findAndCountAll({
+    where: whereClause,
     offset,
     limit,
-    order: [['createdAt', 'DESC']]
+    order: [['createdAt', 'DESC']],
+    include: [
+      {
+        model: User,
+        as: 'user',
+        attributes: ['name', 'email', 'phone'],
+        required: false // always include user
+      }
+    ]
   });
 };
+
+
 
 
 const getWithdrawalRequestById = async (id) => {

@@ -68,10 +68,13 @@ const getAllAdminWithdrawals = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
 
-    const { rows: data, count: total } = await withdrawalService.getAllAdminWithdrawalRequests( offset, limit);
+    const filters = {
+      status: req.query.status || null,
+      search: req.query.search || null
+    };
 
-    console.log(data,"FDfg");
-    
+    const { rows: data, count: total } = await withdrawalService.getAllAdminWithdrawalRequests(offset, limit, filters);
+
     res.status(200).json({
       success: true,
       message: 'Fetched withdrawal requests.',
@@ -90,6 +93,7 @@ const getAllAdminWithdrawals = async (req, res) => {
     });
   }
 };
+
 
 const approveWithdrawal = async (req, res) => {
   try {
