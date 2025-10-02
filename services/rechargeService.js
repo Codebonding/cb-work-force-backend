@@ -6,23 +6,28 @@ const CommissionRate = require('../models/CommissionRate');
 const User = require('../models/User');
 const UserFinancial = require('../models/UserFinancial');
 const RechargeHistory = require('../models/RechargeHistory');
-
+const UserStatuses = require('../models/UserStatus');
 
 const processRecharge = async (userId, body) => {
     const { number, amount, operatorCode, circleCode } = body;
     const orderId = `ORD-${uuidv4()}`;
   
     // Fetch necessary data
-    const [sim, commissionRate, user, userFinancial] = await Promise.all([
+    const [sim, commissionRate, user, userFinancial, userStatus] = await Promise.all([
       Sim.findOne({ where: { operatorCode } }),
       CommissionRate.findOne({ where: { operatorCode } }),
       User.findByPk(userId),
-      UserFinancial.findOne({ where: { userId } })
+      UserFinancial.findOne({ where: { userId } }),
+      UserStatuses.findOne({ where: { userId } })
     ]);
   
     if (!user || !userFinancial || !commissionRate || !sim) {
       throw new Error("User, financial, commission, or SIM data not found.");
     }
+
+    if (userStatus?.isBlocked === 1) {
+    throw new Error(`Your account has been blocked. Reason: ${userStatus.reason || "No reason provided."}`);
+  }
   
     // ✅ Check if user has enough balance
     if (userFinancial.accountBalance < amount) {
